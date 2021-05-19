@@ -2,6 +2,8 @@ from __future__ import unicode_literals
 import youtube_dl
 import os
 
+from youtube_dl.extractor.youtube import YoutubeBaseInfoExtractor
+
 class Logger(object):
     def debug(self, msg):
         pass
@@ -37,3 +39,13 @@ def try_downloading(dir, URL):
             print(type(e).__name__)
             return False
         return True
+
+def validate_url(url):
+    if len(url) < 1:
+        return False
+    extractors = youtube_dl.extractor.gen_extractors()
+    for e in extractors:
+        if 'Youtube' in str(type(e)):
+            if e.suitable(url) and e.IE_NAME != 'generic':
+                return True
+    return False
