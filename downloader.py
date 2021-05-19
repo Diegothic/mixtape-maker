@@ -14,9 +14,8 @@ def hook(d):
     if d['status'] == 'finished':
         print('Done downloading, now converting...')
 
-download_path = '/'.join(os.getcwd().split('/')[:3]) + '/Downloads'
-
-ydl_opts = {
+def gen_opts(dir):
+    ydl_opts = {
     'format': 'bestaudio/best',
     'postprocessors': [{
         'key': 'FFmpegExtractAudio',
@@ -25,11 +24,13 @@ ydl_opts = {
     }],
     'logger': Logger(),
     'progress_hooks': [hook],
-    'outtmpl': '{}/%(title)s.%(ext)s'.format(download_path),
-}
+    'outtmpl': '{}/%(title)s.%(ext)s'.format(dir),
+    }
+    return ydl_opts
 
-def try_downloading(URL):
-    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+def try_downloading(dir, URL):
+    opts = gen_opts(dir)
+    with youtube_dl.YoutubeDL(opts) as ydl:
         try:
             ydl.download([URL])
         except Exception as e:
