@@ -1,89 +1,100 @@
 import tkinter as tk
-import tkinter.filedialog
 import downloader as dl
-import os
+from constants import *
+from custom_widgets import DirectoryEntry, EntryLabel
+from custom_widgets import NameEntry
+from custom_widgets import SearchEntry
+from custom_widgets import DownloadButton
+from custom_widgets import Logos
+from song_list import SongListScrollbar
 
-program_dir = '/'.join(os.getcwd().split('/')[:3]).replace('\\','/')
+class Application():
+    def __init__(self):
+        self.songs = {}
 
-bg_color = '#FFFFFF'
-entry_color = '#d6d6d6'
+    def add_song(self, song):
+        self.songs[song.id] = song
+        values_list = list(self.songs.values())
+        self.song_list.set_contents(values_list)
 
-success_color = '#00ff77'
-failure_color = '#ff0040'
+    def set_song_list(self, song_list):
+        self.song_list = song_list
+
+    def download_songs(self):
+        try:
+            directory = '{}/{}'.format(dir_entry.get_dir(), name_entry.get_name())
+        except Exception as e:
+            print(e)
+            return
+        print(directory)
+        songIDs = self.songs.keys()
+        for id in songIDs:
+            print(id)
+            self.download(directory, id)
+
+    def download(self, dir, url):
+        dl.try_downloading(dir, url)
+
+app = Application()
 
 songlist = []
 
-def download_songs():
-    for song in songlist:
-        download(song)
-    songs_listbox.delete('0','end')
-    songlist.clear()
-    status_text.config(state='normal')
-    status_text.delete('1.0', "end")
-    status_text.config(state='disabled')
-
-def download(url):
-    dir = dir_entry.get()
-    dl.try_downloading(dir, url)
-
-def choose_dir():
-    directory = tk.filedialog.askdirectory(initialdir=program_dir, title='Select Directory')
-    if(len(directory) > 0):
-        dir_entry.delete('0', 'end')
-        dir_entry.insert('0', directory)
-
-def add_url_to_list():
-    status_text.config(state='normal')
-    status_text.delete('1.0', "end")
-    url = url_entry.get()
-    is_valid = dl.validate_url(url)
-    if(is_valid):
-        songlist.append(url)
-        status_text.insert('end', ' VALID URL ', ('success'))
-    else:
-        status_text.insert('end', 'INVALID URL', ('failure'))
-    status_text.config(state='disabled')
-    url_entry.delete('0', 'end')
-    update_listbox()
-
-def update_listbox():
-    songs_listbox.delete('0', 'end')
-    for song in songlist:
-        songs_listbox.insert('end', song)
-
 root = tk.Tk()
-root.geometry('800x800')
+root.geometry('800x640')
 root.title('Mixtape-Maker')
+root.minsize(600, 480)
 
-canvas = tk.Canvas(root, height=800, width=800, bg=bg_color, bd=0, highlightthickness=0)
-canvas.pack(fill = 'both', expand = True)
-canvas.bind('<1>', lambda event: canvas.focus_set())
+frame = tk.Frame(root, height=640, width=480, bg=bg_color)
+frame.place(anchor='nw',  relwidth=1, relheight=1)
+frame.bind('<1>', lambda event: frame.focus_set())
 
-dir_entry = tk.Entry(root, font=('Helvetica', 16), width=57, bg = entry_color, bd=0)
-dir_window = canvas.create_window(35, 50, anchor='nw', window=dir_entry)
-dir_entry.insert('0', program_dir)
+frame.grid_columnconfigure(0, weight=1)
+frame.grid_columnconfigure(1, weight=0, minsize=35)
+frame.grid_rowconfigure(0, weight=0, minsize=75)
+frame.grid_rowconfigure(1, weight=1)
+frame.grid_rowconfigure(2, weight=0, minsize=150)
 
-dir_button = tk.Button(root, font=('Helvetica', 9), text=' ... ', command=choose_dir)
-dir_button_window = canvas.create_window(750, 50, anchor='ne', window = dir_button)
 
-url_entry = tk.Entry(root, font=('Helvetica', 16), width=57,bg=entry_color, bd=0)
-url_window = canvas.create_window(35, 100, anchor='nw', window=url_entry)
+list_frame = tk.Frame(frame, bg=bg_color)
+list_frame.grid(row=1, column=0, sticky='nsew')
 
-url_add_button = tk.Button(root, font=('Helvetica', 9), text=' + ', command=add_url_to_list)
-url_add_window = canvas.create_window(750, 100, anchor='ne', window = url_add_button)
+song_list = SongListScrollbar(list_frame)
+song_list.place(anchor='nw', x=35, relwidth=0.7, relheight=1)
 
-download_button = tk.Button(root, font=('Helvetica', 12), text='Download', command=download_songs)
-download_window = canvas.create_window(765, 750, anchor='se', window=download_button)
+search_entry = SearchEntry(app, frame)
+search_entry.place(anchor='nw', relwidth=0.7, height=30, x=35, y=35)
+search_label = EntryLabel(frame, 'Search:')
+search_label.place(anchor='sw', x=35, y=35)
 
-status_text = tk.Text(root, font=('Helvetica', 16), width=11, height=1, bd=0, state='disabled')
-status_window = canvas.create_window(400, 10, anchor='n', window=status_text)
-status_text.tag_add('failure', '1.0', 'end')
-status_text.tag_configure('failure', foreground=failure_color)
-status_text.tag_add('success', '1.0', 'end')
-status_text.tag_configure('success', foreground=success_color)
+app.set_song_list(song_list)
 
-songs_listbox = tk.Listbox(root, font=('Helvetica', 14))
-songlist_window = canvas.create_window(35, 200, width=730, height=500, anchor='nw', window=songs_listbox)
+dir_entry = DirectoryEntry(frame)
+dir_entry.place(anchor='nw', relwidth=0.7, height=30, x=35, rely=1, y=-120)
+dir_label = EntryLabel(frame, 'Directory:')
+dir_label.place(anchor='sw', x=35, rely=1, y=-120)
+
+name_entry = NameEntry(frame)
+name_entry.place(anchor='nw', relwidth=0.7, height=30, x=35, rely=1, y=-60)
+name_label = EntryLabel(frame, 'Name:')
+name_label.place(anchor='sw', x=35, rely=1, y=-60)
+
+right_panel = tk.Frame(frame, bg=bg_color)
+right_panel.place(anchor='nw', relwidth=0.24, relx=0.76, relheight=1)
+
+download_button = DownloadButton(app, right_panel)
+download_button.place(anchor='nw', rely=1, y=-120, height=90, relwidth=0.9)
+
+logos = Logos(right_panel)
+logos.place(anchor='nw', y=35, relwidth=0.9, relheight=0.7)
+
+
+search_entry.entry.focus()
 
 def start_window():
     root.mainloop()
+
+def main():
+    start_window()
+
+if __name__ == '__main__':
+    main()
