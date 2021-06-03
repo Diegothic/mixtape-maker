@@ -20,8 +20,7 @@ class PlaceholderEntry(Entry):
 
     def on_unfocus(self, event):
         if len(self.get()) < 1:
-            self.config(fg=text_dark_color)
-            self.insert('0', self.placeholder)
+            self.set_default()
 
     def set_text(self, text):
         self.delete('0', 'end')
@@ -29,12 +28,16 @@ class PlaceholderEntry(Entry):
             self.config(fg=text_color)
             self.insert('0', text)
         else:
-            self.config(fg=text_dark_color)
-            self.insert('0', self.placeholder)
+            self.set_default()
 
     def is_empty(self):
         content = self.get()
         return content == self.placeholder or len(content) == 0
+
+    def set_default(self):
+        self.delete('0', 'end')
+        self.config(fg=text_dark_color)
+        self.insert('0', self.placeholder)
 
 
 class EntryLabel(Label):
@@ -90,11 +93,11 @@ class NameEntry(Frame):
 class SearchEntry(Frame):
     def __init__(self, app, master):
         super().__init__(master, bg=entry_color)
-        self.columnconfigure(0, weight=1)
+        self.columnconfigure(1, weight=1)
         self.rowconfigure(0, weight=1)
 
         self.entry = PlaceholderEntry(self, 'Search for songs...')
-        self.entry.grid(row=0, column=0, sticky='nsew', padx=10)
+        self.entry.grid(row=0, column=1, sticky='nsew', padx=10)
         self.entry.bind('<FocusOut>', self.on_unfocus)
         self.entry.bind('<Return>', self.on_enter)
         self.entry.bind('<Escape>', self.on_escape)
@@ -103,7 +106,7 @@ class SearchEntry(Frame):
         self.songs_found = []
 
         self.button_frame = Frame(self, width=30)
-        self.button_frame.grid(row=0, column=1, sticky='nsew')
+        self.button_frame.grid(row=0, column=2, sticky='nsew')
         self.img = PhotoImage(data=mg_imgdata)
         self.img_dark = PhotoImage(data=mg_dark_imgdata)
         self.button = Button(self.button_frame, text='Search', image=self.img,
@@ -112,6 +115,12 @@ class SearchEntry(Frame):
 
         self.button.bind('<Button-1>', self.on_click)
         self.button.bind('<ButtonRelease-1>', self.on_unclick)
+
+        self.x_button_frame = Frame(self, width=30)
+        self.x_button_frame.grid(row=0, column=0, sticky='nsew')
+        self.x_button = Button(self.x_button_frame, font=(app_font, 14), text='X',
+                        bg=dark_color, fg=text_color, bd=0, command=self.escape)
+        self.x_button.place(anchor='nw', relwidth=1, relheight=1,)
 
     def on_unfocus(self, event):
         if self.entry.is_empty():
@@ -126,6 +135,7 @@ class SearchEntry(Frame):
     def escape(self):
         self.hide_results()
         self.clear_songs()
+        self.button_frame.focus()
 
     def show_results(self):
         if self.entry.is_empty():
@@ -155,7 +165,7 @@ class SearchEntry(Frame):
         self.entry.set_text('')
 
 class DownloadButton(Frame):
-    def __init__(self, app, master):
+    def __init__(self, app, gui, master):
         super().__init__(master, bg=entry_color)
 
         self.download_button = Button(self,font=(app_font, 14), text='Make\nMixtape',
@@ -163,9 +173,15 @@ class DownloadButton(Frame):
         self.download_button.place(anchor='nw', relwidth=1, relheight=1)
 
         self.app = app
+        self.gui = gui
 
     def download_songs(self):
-        self.app.download_songs()
+        try:
+            dir = self.gui.get_directory()
+        except Exception as e:
+            print(e)
+            return
+        self.app.download_songs(dir)
 
 class Logos(Frame):
     def __init__(self, master):

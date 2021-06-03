@@ -78,9 +78,9 @@ class SearchResults(Canvas):
 
     def get_selected_item(self, event):
         try:
-            item = int(self.list.selection()[0])
-            self.appdata.add_song(self.list.songs[item])
-            print(self.list.songs[item].id)
+            itemID = int(self.list.selection()[0])
+            self.appdata.add_song(self.list.songs[itemID])
+            print(self.list.songs[itemID].id)
             self.parent.hide_results()
             self.parent.escape()
         except:

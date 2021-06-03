@@ -1,5 +1,4 @@
-import tkinter as tk
-import downloader as dl
+from tkinter import *
 from constants import *
 from custom_widgets import DirectoryEntry, EntryLabel
 from custom_widgets import NameEntry
@@ -8,93 +7,128 @@ from custom_widgets import DownloadButton
 from custom_widgets import Logos
 from song_list import SongListScrollbar
 
-class Application():
-    def __init__(self):
-        self.songs = {}
+class GUI(Tk):
+    def __init__(self, app):
+        super().__init__()
+        self.isFrozen = False
 
-    def add_song(self, song):
-        self.songs[song.id] = song
-        values_list = list(self.songs.values())
-        self.song_list.set_contents(values_list)
+        self.geometry('800x640')
+        self.title('Mixtape-Maker')
+        self.minsize(600, 480)
 
-    def set_song_list(self, song_list):
-        self.song_list = song_list
+        self.app = app
 
-    def download_songs(self):
+        self.generate_main_frame()
+        self.generate_song_list()
+        self.generate_entries()
+        self.generate_right_panel()
+
+        self.bind_focus(self.frame)
+        self.bind_focus(self.right_panel)
+        self.bind_focus(self.logos)
+        self.bind_focus(self.logos.canvas)
+        self.bind_focus(self.logos.credits_frame)
+
+        app.set_song_list(self.song_list)
+
+    def start_window(self):
+        self.search_entry.entry.focus()
+        self.after(50, self.try_downloading)
+        self.mainloop()
+
+    def try_downloading(self):
+        if len(self.app.download_queue) > 0:
+            if not self.isFrozen:
+                self.freeze()
+            else:
+                app.download_next_in_queue()
+        elif self.isFrozen:
+            self.unfreeze()
+            self.clear_after_downloading()
+        self.after(50, self.try_downloading)
+
+    def clear_after_downloading(self):
+        self.dir_entry.entry.set_default()
+        self.name_entry.entry.set_default()
+        self.song_list.set_contents([])
+        self.app.songs.clear()
+        self.app.dir=''
+        self.frame.focus()
+
+    def freeze(self):
+        self.isFrozen = True
+        self.change_state('disable')
+
+    def unfreeze(self):
+        self.isFrozen = False
+        self.change_state('normal')
+
+    def change_state(self, new_state):
+        children = self.winfo_children()
+        for item in children :
+            if item.winfo_children() :
+                children.extend(item.winfo_children())
+        for child in children:
+            try:
+                child.configure(state=new_state)
+            except:
+                continue
+
+    def get_directory(self):
         try:
-            directory = '{}/{}'.format(dir_entry.get_dir(), name_entry.get_name())
+            dir = self.dir_entry.get_dir()
+            name = self.name_entry.get_name()
+            directory = '{}/{}'.format(dir, name)
         except Exception as e:
             print(e)
-            return
-        print(directory)
-        songIDs = self.songs.keys()
-        for id in songIDs:
-            print(id)
-            self.download(directory, id)
+            raise RuntimeError('Could not get directory')
+        return directory
 
-    def download(self, dir, url):
-        dl.try_downloading(dir, url)
+    def bind_focus(self, widget):
+        widget.bind('<1>', lambda event: widget.focus_set())
 
-app = Application()
+    def generate_main_frame(self):
+        self.frame = Frame(self, height=640, width=480, bg=bg_color)
+        self.frame.place(anchor='nw',  relwidth=1, relheight=1)
 
-songlist = []
+        self.frame.grid_columnconfigure(0, weight=1)
+        self.frame.grid_columnconfigure(1, weight=0, minsize=35)
+        self.frame.grid_rowconfigure(0, weight=0, minsize=75)
+        self.frame.grid_rowconfigure(1, weight=1)
+        self.frame.grid_rowconfigure(2, weight=0, minsize=150)
 
-root = tk.Tk()
-root.geometry('800x640')
-root.title('Mixtape-Maker')
-root.minsize(600, 480)
+    def generate_song_list(self):
+        self.list_frame = Frame(self.frame, bg=bg_color)
+        self.list_frame.grid(row=1, column=0, sticky='nsew')
 
-frame = tk.Frame(root, height=640, width=480, bg=bg_color)
-frame.place(anchor='nw',  relwidth=1, relheight=1)
-frame.bind('<1>', lambda event: frame.focus_set())
+        self.song_list = SongListScrollbar(self.list_frame)
+        self.song_list.place(anchor='nw', x=35, relwidth=0.7, relheight=1)
 
-frame.grid_columnconfigure(0, weight=1)
-frame.grid_columnconfigure(1, weight=0, minsize=35)
-frame.grid_rowconfigure(0, weight=0, minsize=75)
-frame.grid_rowconfigure(1, weight=1)
-frame.grid_rowconfigure(2, weight=0, minsize=150)
+    def generate_entries(self):
+        self.search_entry = SearchEntry(self.app, self.frame)
+        self.search_entry.place(anchor='nw', relwidth=0.7, height=30, x=35, y=35)
 
+        self.search_label = EntryLabel(self.frame, 'Search:')
+        self.search_label.place(anchor='sw', x=35, y=35)
 
-list_frame = tk.Frame(frame, bg=bg_color)
-list_frame.grid(row=1, column=0, sticky='nsew')
+        self.dir_entry = DirectoryEntry(self.frame)
+        self.dir_entry.place(anchor='nw', relwidth=0.7, height=30, x=35, rely=1, y=-120)
 
-song_list = SongListScrollbar(list_frame)
-song_list.place(anchor='nw', x=35, relwidth=0.7, relheight=1)
+        self.dir_label = EntryLabel(self.frame, 'Directory:')
+        self.dir_label.place(anchor='sw', x=35, rely=1, y=-120)
 
-search_entry = SearchEntry(app, frame)
-search_entry.place(anchor='nw', relwidth=0.7, height=30, x=35, y=35)
-search_label = EntryLabel(frame, 'Search:')
-search_label.place(anchor='sw', x=35, y=35)
+        self.name_entry = NameEntry(self.frame)
+        self.name_entry.place(anchor='nw', relwidth=0.7, height=30, x=35, rely=1, y=-60)
 
-app.set_song_list(song_list)
+        self.name_label = EntryLabel(self.frame, 'Name:')
+        self.name_label.place(anchor='sw', x=35, rely=1, y=-60)
 
-dir_entry = DirectoryEntry(frame)
-dir_entry.place(anchor='nw', relwidth=0.7, height=30, x=35, rely=1, y=-120)
-dir_label = EntryLabel(frame, 'Directory:')
-dir_label.place(anchor='sw', x=35, rely=1, y=-120)
+    def generate_right_panel(self):
+        self.right_panel = Frame(self.frame, bg=bg_color)
+        self.right_panel.place(anchor='nw', relwidth=0.24, relx=0.76, relheight=1)
 
-name_entry = NameEntry(frame)
-name_entry.place(anchor='nw', relwidth=0.7, height=30, x=35, rely=1, y=-60)
-name_label = EntryLabel(frame, 'Name:')
-name_label.place(anchor='sw', x=35, rely=1, y=-60)
+        self.download_button = DownloadButton(self.app, self, self.right_panel)
+        self.download_button.place(anchor='nw', rely=1, y=-120, height=90, relwidth=0.9)
 
-right_panel = tk.Frame(frame, bg=bg_color)
-right_panel.place(anchor='nw', relwidth=0.24, relx=0.76, relheight=1)
-
-download_button = DownloadButton(app, right_panel)
-download_button.place(anchor='nw', rely=1, y=-120, height=90, relwidth=0.9)
-
-logos = Logos(right_panel)
-logos.place(anchor='nw', y=35, relwidth=0.9, relheight=0.7)
-
-
-search_entry.entry.focus()
-
-def start_window():
-    root.mainloop()
-
-def main():
-    start_window()
-
-if __name__ == '__main__':
-    main()
+        self.logos = Logos(self.right_panel)
+        self.logos.place(anchor='nw', y=35, relwidth=0.9, relheight=0.7)
