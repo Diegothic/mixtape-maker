@@ -41,7 +41,7 @@ class GUI(Tk):
             if not self.isFrozen:
                 self.freeze()
             else:
-                app.download_next_in_queue()
+                self.app.download_next_in_queue()
         elif self.isFrozen:
             self.unfreeze()
             self.clear_after_downloading()
