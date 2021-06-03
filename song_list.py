@@ -5,7 +5,7 @@ from constants import *
 
 class SongList(ttk.Treeview):
     def __init__(self, master, mode='extended'):
-        super().__init__(master, show='tree', padding=[-22,0,0,0], selectmode=mode)
+        super().__init__(master, show='tree', padding=[-22,0,0,0], selectmode=mode, style='m.Treeview')
         self['columns'] = ('Title', 'Duration')
         self.column('#0', anchor='w', width=181, stretch=0)
         self.column('Title', anchor='center', width=120)
@@ -16,7 +16,21 @@ class SongList(ttk.Treeview):
         self.songs = []
 
         self.style = ttk.Style()
-        self.style.configure('Treeview', rowheight=90)
+        self.style.theme_use('classic')
+        self.style.configure('Treeview', 
+                fieldbackground=tree_background_color,
+                foreground=text_color,
+                font=(app_font, 11),
+                rowheight=90,
+                relief='flat',
+                borderwidth=0
+                )
+        self.style.map('Treeview',
+                background=[('selected', tree_selected_color)],
+                foreground=[('selected', dark_color)]
+                )
+        self.tag_configure('odd', background=tree_odd_color)
+        self.tag_configure('even', background=tree_even_color)
 
     def set_contents(self, songs):
         self.images.clear()
@@ -28,8 +42,9 @@ class SongList(ttk.Treeview):
         for song in self.songs:
             th = ImageTk.PhotoImage(song.thumbnail)
             self.images.append(th)
+            tag = 'even' if counter % 2 == 0 else 'odd'
             self.insert(parent='', index='end', iid=counter, text='', 
-                            image=self.images[counter],
+                            image=self.images[counter], tags = (tag,),
                             values=(song.title, song.duration))
             counter += 1
 
@@ -37,7 +52,7 @@ class SongList(ttk.Treeview):
 
 class SongListScrollbar(Frame):
     def __init__(self, master):
-        super().__init__(master, bg=entry_color)
+        super().__init__(master, bg=entry_color, bd=0)
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
 
@@ -46,6 +61,22 @@ class SongListScrollbar(Frame):
 
         self.scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.tree.yview)
         self.scrollbar.grid(row=0, column=1, sticky='nsew')
+
+        self.style = ttk.Style()
+        self.style.theme_use('classic')
+        self.style.configure('TScrollbar', 
+                activebackground=text_dark_color,
+                background=text_dark_color,
+                activerelief=dark_color,
+                troughcolor=dark_color,
+                relief='flat',
+                borderwidth=0,
+                width=20,
+                arrowsize=0
+                )
+        self.style.map('TScrollbar',
+                background=[('active', text_color)]
+                )
 
         self.tree.configure(yscrollcommand=self.scrollbar.set)
 
@@ -56,7 +87,7 @@ class SongListScrollbar(Frame):
 
 class SearchResults(Canvas):
     def __init__(self, appdata, parent, master):
-        super().__init__(master, bg=entry_color, highlightbackground=dark_color)
+        super().__init__(master, bg=entry_color, highlightcolor=text_color, highlightthickness=5)
         self.list = SongList(self, 'browse')
         self.list.place(anchor='nw', relwidth=1, relheight=1)
 

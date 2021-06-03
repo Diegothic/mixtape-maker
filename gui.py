@@ -20,10 +20,11 @@ class GUI(Tk):
 
         self.generate_main_frame()
         self.generate_song_list()
-        self.generate_entries()
         self.generate_right_panel()
+        self.generate_entries()
 
         self.bind_focus(self.frame)
+        self.bind_focus(self.back_frame)
         self.bind_focus(self.right_panel)
         self.bind_focus(self.logos)
         self.bind_focus(self.logos.canvas)
@@ -97,30 +98,32 @@ class GUI(Tk):
         self.frame.grid_rowconfigure(1, weight=1)
         self.frame.grid_rowconfigure(2, weight=0, minsize=150)
 
+        self.back_frame = Frame(self.frame, bg=bg_color)
+        self.back_frame.grid(row=0, rowspan=3, column=0, sticky='nsew')
+
     def generate_song_list(self):
         self.list_frame = Frame(self.frame, bg=bg_color)
         self.list_frame.grid(row=1, column=0, sticky='nsew')
-
         self.song_list = SongListScrollbar(self.list_frame)
-        self.song_list.place(anchor='nw', x=35, relwidth=0.7, relheight=1)
+        self.song_list.place(anchor='nw', x=35, relwidth=0.72, relheight=1)
 
     def generate_entries(self):
         self.search_entry = SearchEntry(self.app, self.frame)
-        self.search_entry.place(anchor='nw', relwidth=0.7, height=30, x=35, y=35)
+        self.search_entry.place(anchor='nw', relwidth=0.72, height=30, x=35, y=35)
 
-        self.search_label = EntryLabel(self.frame, 'Search:')
+        self.search_label = EntryLabel(self.back_frame, 'Search:')
         self.search_label.place(anchor='sw', x=35, y=35)
 
-        self.dir_entry = DirectoryEntry(self.frame)
-        self.dir_entry.place(anchor='nw', relwidth=0.7, height=30, x=35, rely=1, y=-120)
+        self.dir_entry = DirectoryEntry(self.back_frame)
+        self.dir_entry.place(anchor='nw', relwidth=0.72, height=30, x=35, rely=1, y=-120)
 
-        self.dir_label = EntryLabel(self.frame, 'Directory:')
+        self.dir_label = EntryLabel(self.back_frame, 'Directory:')
         self.dir_label.place(anchor='sw', x=35, rely=1, y=-120)
 
-        self.name_entry = NameEntry(self.frame)
-        self.name_entry.place(anchor='nw', relwidth=0.7, height=30, x=35, rely=1, y=-60)
+        self.name_entry = NameEntry(self.back_frame)
+        self.name_entry.place(anchor='nw', relwidth=0.72, height=30, x=35, rely=1, y=-60)
 
-        self.name_label = EntryLabel(self.frame, 'Name:')
+        self.name_label = EntryLabel(self.back_frame, 'Name:')
         self.name_label.place(anchor='sw', x=35, rely=1, y=-60)
 
     def generate_right_panel(self):

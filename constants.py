@@ -12,6 +12,11 @@ text_dark_color = '#858585'
 success_color = '#6a9955'
 failure_color = '#af3a50'
 
+tree_selected_color = '#99d9ea'
+tree_background_color = '#161616'
+tree_odd_color = '#2a2a2a'
+tree_even_color = '#1e1e1e'
+
 app_font = 'Roboto'
 
 mg_imgdata='iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAACXBIWXMAAAsSAAALEgHS3X78AAABBklEQVRIie1WCw2DMBB9WyagEnAwJCBhEpCAhElAAnMwCZVQHCChDro0uSZHR/phzViyvuTSBI57vebdoydjDI7A+RDWSvwXxJfM/I7CQgGQAPQuZjtOCTEYY7R5h312T6yxipSkyaOTFHwjz9LEPStuNyDYO0HdOmR1HktYEjpy5Nrb2G7ilnXTRAq5Y7+lEofGSdA6A1giGlW0tqmi/kkDcfN5BdAE8gTrVAXy1iggrrG0uEBi4bPKRSYYqZvvrxjIFqaSxK7zZYNIk50qz2iiNXOvPp0nJMkEJkmIFg8A/SfiygnhdT7uNZBcaDqRmb4Lmknu/zgGRz7E3K5ebytxJS4DAC9g7N2DLuyv6wAAAABJRU5ErkJggg=='
