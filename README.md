@@ -1,2 +1,2 @@
 # mixtape-maker
-Desktop app used to download list of youtube songs into a single folder.
+Desktop app allowing users to search youtube for songs and download them into a specified folder.
